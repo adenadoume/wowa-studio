@@ -8,6 +8,7 @@ const NORMAL_MS = 3800
 const FAST_MS = 900
 const SCROLL_BOOST_MS = 1400
 const MIN_PLACEHOLDER_MS = 900
+const CHROME_REVEAL_DELAY_MS = 2500
 
 function preload(src) {
   return new Promise((resolve) => {
@@ -25,9 +26,11 @@ function App() {
   const [prevIndex, setPrevIndex] = useState(null)
   const [hovered, setHovered] = useState(false)
   const [hasScrolled, setHasScrolled] = useState(false)
+  const [chromeHidden, setChromeHidden] = useState(false)
 
   const fastUntilRef = useRef(0)
   const timeoutRef = useRef(null)
+  const chromeRevealTimeoutRef = useRef(null)
 
   useEffect(() => {
     let cancelled = false
@@ -89,25 +92,57 @@ function App() {
     function boost() {
       fastUntilRef.current = Date.now() + SCROLL_BOOST_MS
       setHasScrolled(true)
+      setChromeHidden(true)
+      clearTimeout(chromeRevealTimeoutRef.current)
+      chromeRevealTimeoutRef.current = setTimeout(() => {
+        setChromeHidden(false)
+      }, CHROME_REVEAL_DELAY_MS)
+    }
+    function revealChrome() {
+      setChromeHidden(false)
+      clearTimeout(chromeRevealTimeoutRef.current)
     }
     window.addEventListener('wheel', boost, { passive: true })
     window.addEventListener('touchmove', boost, { passive: true })
+    window.addEventListener('touchstart', revealChrome, { passive: true })
     return () => {
       window.removeEventListener('wheel', boost)
       window.removeEventListener('touchmove', boost)
+      window.removeEventListener('touchstart', revealChrome)
+      clearTimeout(chromeRevealTimeoutRef.current)
     }
   }, [])
+
+  const lastMouseBoostRef = useRef(0)
+  const lastMousePosRef = useRef(null)
+
+  function handleStageMouseMove(e) {
+    const pos = { x: e.clientX, y: e.clientY }
+    const last = lastMousePosRef.current
+    lastMousePosRef.current = pos
+    if (!last) return
+
+    const moved = Math.hypot(pos.x - last.x, pos.y - last.y)
+    const now = Date.now()
+    if (moved > 12 && now - lastMouseBoostRef.current > 150) {
+      lastMouseBoostRef.current = now
+      fastUntilRef.current = now + SCROLL_BOOST_MS
+      setHasScrolled(true)
+    }
+  }
 
   return (
     <div className="page">
       <aside className="sidebar">
-        <header className="logo">
-          <span className="logo-bold">wow</span>
-          <span className="logo-bold logo-accent">a</span>
-          <span className="logo-light">studio</span>
-        </header>
+        <a href="/" className={`logo${chromeHidden ? ' chrome-hidden' : ''}`} aria-label="wowastudio — Home">
+          <span className="logo-inner">
+            <span className="logo-bold">wow</span>
+            <span className="logo-bold logo-accent">a</span>
+            <span className="logo-light">studio</span>
+          </span>
+        </a>
 
-        <footer className="contact">
+        <footer className={`contact${chromeHidden ? ' chrome-hidden' : ''}`}>
           <a
             className="contact-row contact-icon-only"
             href="https://www.instagram.com/wowa_studio/"
@@ -129,7 +164,7 @@ function App() {
             </svg>
           </a>
 
-          <a className="contact-row" href="tel:+306974929253" aria-label="Phone">
+          <a className="contact-row contact-reveal" href="tel:+306974929253" aria-label="Phone: +30 697 492 9253">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path
                 d="M4.5 3.5H8.5L10.5 8.5L8 10.5C9 13 11 15 13.5 16L15.5 13.5L20.5 15.5V19.5C20.5 20.6 19.6 21.5 18.5 21.5C10.5 21 3.5 14 3 6C3 4.9 3.9 3.5 4.5 3.5Z"
@@ -148,6 +183,7 @@ function App() {
         className={`stage${hovered ? ' stage-color' : ''}`}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
+        onMouseMove={handleStageMouseMove}
       >
         {started && prevIndex !== null && (
           <img className="frame frame-under" src={images[prevIndex]} alt="" />
