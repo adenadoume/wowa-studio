@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
-import CylinderFrame from './CylinderFrame'
+import { Suspense, lazy, useEffect, useRef, useState } from 'react'
 import './App.css'
+
+const CylinderStage = lazy(() => import('./CylinderStage'))
 
 const IMAGES_API_BASE =
   import.meta.env.VITE_IMAGES_API_BASE || 'https://img.wowa.studio'
@@ -174,11 +175,14 @@ function App() {
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
-        {started && prevIndex !== null && images[prevIndex] && (
-          <CylinderFrame image={images[prevIndex]} animate={false} className="frame-under" />
-        )}
         {started && images[index] && (
-          <CylinderFrame key={index} image={images[index]} animate className="frame-fade" />
+          <Suspense fallback={null}>
+            <CylinderStage
+              current={images[index]}
+              prev={prevIndex !== null ? images[prevIndex] : null}
+              onPrevDone={() => setPrevIndex(null)}
+            />
+          </Suspense>
         )}
       </main>
     </div>
