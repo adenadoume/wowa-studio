@@ -36,6 +36,7 @@ function App() {
   const [images, setImages] = useState([])
   const [hovered, setHovered] = useState(false)
   const [chromeHidden, setChromeHidden] = useState(false)
+  const [showMagenta, setShowMagenta] = useState(true)
 
   const chromeRevealTimeoutRef = useRef(null)
 
@@ -99,7 +100,7 @@ function App() {
   return (
     <div className="page">
       <aside className="sidebar">
-        <a href="/" className={`logo${chromeHidden ? ' chrome-hidden' : ''}`} aria-label="wowastudio — Home">
+        <a href="/" className="logo" aria-label="wowastudio — Home">
           <span className="logo-inner">
             <span className="logo-bold">wow</span>
             <span className="logo-bold logo-accent">a</span>
@@ -152,7 +153,12 @@ function App() {
         onTouchEnd={() => setHovered(false)}
         onTouchCancel={() => setHovered(false)}
       >
-        <ImageCarousel images={images} rotateMs={ROTATE_MS} />
+        <ImageCarousel
+          images={images}
+          rotateMs={ROTATE_MS}
+          showMagenta={showMagenta}
+          onMagentaPassed={() => setShowMagenta(false)}
+        />
       </main>
     </div>
   )

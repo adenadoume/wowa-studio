@@ -154,20 +154,14 @@
 
 .contact-reveal {
   color: var(--magenta);
+  -webkit-tap-highlight-color: transparent;
+  user-select: text;
 }
 
 .contact-reveal span {
-  display: inline-block;
-  max-width: 0;
-  overflow: hidden;
-  white-space: nowrap;
-  opacity: 0;
-  transition: max-width 0.35s ease, opacity 0.25s ease;
-}
-
-.contact-reveal:hover span {
-  max-width: 200px;
-  opacity: 1;
+  font-weight: 700;
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 .contact-row svg {
@@ -191,6 +185,7 @@
 @media (max-width: 700px), (max-height: 500px) and (orientation: landscape) {
   .page {
     position: relative;
+    flex-direction: column;
     padding: 0;
   }
 
@@ -198,48 +193,33 @@
     display: contents;
   }
 
-  .stage {
-    position: absolute;
-    inset: 0;
-    border-radius: 0;
-  }
-
-  .logo,
-  .contact {
-    position: absolute;
-    z-index: 4;
-    transition: opacity 0.4s ease, transform 0.4s ease;
-  }
-
-  .logo.chrome-hidden,
-  .contact.chrome-hidden {
-    opacity: 0;
-    pointer-events: none;
-  }
-
   .logo {
-    top: 18px;
-    left: 50%;
-    transform: translateX(-50%);
+    order: 0;
+    width: 100%;
+    justify-content: center;
+    background: #ffffff;
+    padding: 16px 20px;
     font-size: 19px;
   }
 
-  .logo.chrome-hidden {
-    transform: translateX(-50%) translateY(-14px);
-  }
-
-  .logo-bold,
-  .logo-light {
-    color: #ffffff;
+  .stage {
+    order: 1;
+    flex: 1;
+    border-radius: 0;
   }
 
   .contact {
+    position: absolute;
+    z-index: 4;
     bottom: 18px;
     left: 18px;
     align-items: flex-start;
+    transition: opacity 0.4s ease, transform 0.4s ease;
   }
 
   .contact.chrome-hidden {
+    opacity: 0;
+    pointer-events: none;
     transform: translateY(14px);
   }
 
