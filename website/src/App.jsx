@@ -4,9 +4,7 @@ import './App.css'
 const IMAGES_API_BASE =
   import.meta.env.VITE_IMAGES_API_BASE || 'https://img.wowa.studio'
 
-const NORMAL_MS = 3800
-const FAST_MS = 900
-const SCROLL_BOOST_MS = 1400
+const ROTATE_MS = 3800
 const MIN_PLACEHOLDER_MS = 900
 const CHROME_REVEAL_DELAY_MS = 2500
 
@@ -25,10 +23,8 @@ function App() {
   const [index, setIndex] = useState(0)
   const [prevIndex, setPrevIndex] = useState(null)
   const [hovered, setHovered] = useState(false)
-  const [hasScrolled, setHasScrolled] = useState(false)
   const [chromeHidden, setChromeHidden] = useState(false)
 
-  const fastUntilRef = useRef(0)
   const timeoutRef = useRef(null)
   const chromeRevealTimeoutRef = useRef(null)
 
@@ -70,7 +66,6 @@ function App() {
     let cancelled = false
 
     function scheduleNext() {
-      const ms = Date.now() < fastUntilRef.current ? FAST_MS : NORMAL_MS
       timeoutRef.current = setTimeout(() => {
         if (cancelled) return
         setIndex((current) => {
@@ -78,7 +73,7 @@ function App() {
           return (current + 1) % images.length
         })
         scheduleNext()
-      }, ms)
+      }, ROTATE_MS)
     }
 
     scheduleNext()
@@ -89,9 +84,7 @@ function App() {
   }, [started, images.length])
 
   useEffect(() => {
-    function boost() {
-      fastUntilRef.current = Date.now() + SCROLL_BOOST_MS
-      setHasScrolled(true)
+    function hideChrome() {
       setChromeHidden(true)
       clearTimeout(chromeRevealTimeoutRef.current)
       chromeRevealTimeoutRef.current = setTimeout(() => {
@@ -102,34 +95,16 @@ function App() {
       setChromeHidden(false)
       clearTimeout(chromeRevealTimeoutRef.current)
     }
-    window.addEventListener('wheel', boost, { passive: true })
-    window.addEventListener('touchmove', boost, { passive: true })
+    window.addEventListener('wheel', hideChrome, { passive: true })
+    window.addEventListener('touchmove', hideChrome, { passive: true })
     window.addEventListener('touchstart', revealChrome, { passive: true })
     return () => {
-      window.removeEventListener('wheel', boost)
-      window.removeEventListener('touchmove', boost)
+      window.removeEventListener('wheel', hideChrome)
+      window.removeEventListener('touchmove', hideChrome)
       window.removeEventListener('touchstart', revealChrome)
       clearTimeout(chromeRevealTimeoutRef.current)
     }
   }, [])
-
-  const lastMouseBoostRef = useRef(0)
-  const lastMousePosRef = useRef(null)
-
-  function handleStageMouseMove(e) {
-    const pos = { x: e.clientX, y: e.clientY }
-    const last = lastMousePosRef.current
-    lastMousePosRef.current = pos
-    if (!last) return
-
-    const moved = Math.hypot(pos.x - last.x, pos.y - last.y)
-    const now = Date.now()
-    if (moved > 12 && now - lastMouseBoostRef.current > 150) {
-      lastMouseBoostRef.current = now
-      fastUntilRef.current = now + SCROLL_BOOST_MS
-      setHasScrolled(true)
-    }
-  }
 
   return (
     <div className="page">
@@ -183,7 +158,6 @@ function App() {
         className={`stage${hovered ? ' stage-color' : ''}`}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
-        onMouseMove={handleStageMouseMove}
       >
         {started && prevIndex !== null && (
           <img className="frame frame-under" src={images[prevIndex]} alt="" />
@@ -192,9 +166,9 @@ function App() {
           <img key={index} className="frame frame-fade" src={images[index]} alt="" />
         )}
 
-        <div className={`scroll-cue${hasScrolled ? ' scroll-cue-hidden' : ''}`}>
-          <span className="scroll-cue-icon" />
-          <span className="scroll-cue-label">scroll</span>
+        <div className="scroll-cue">
+          <span className="scroll-cue-arrow scroll-cue-up" />
+          <span className="scroll-cue-arrow scroll-cue-down" />
         </div>
       </main>
     </div>

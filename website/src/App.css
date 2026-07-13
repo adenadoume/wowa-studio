@@ -100,65 +100,63 @@
 
 .frame-fade {
   z-index: 2;
-  transform-origin: top center;
+  transform-origin: center center;
   backface-visibility: hidden;
-  animation: flip-stack 900ms cubic-bezier(0.3, 0.9, 0.4, 1) forwards;
+  animation: cylinder-in 1100ms cubic-bezier(0.3, 0.85, 0.35, 1) forwards;
 }
 
-@keyframes flip-stack {
+@keyframes cylinder-in {
   from {
-    opacity: 0.4;
-    transform: rotateX(-100deg) translateZ(0);
+    opacity: 0.35;
+    transform: rotateY(-115deg) translateZ(-220px) scale(1.04);
+  }
+  55% {
+    opacity: 1;
   }
   to {
     opacity: 1;
-    transform: rotateX(0deg) translateZ(0);
+    transform: rotateY(0deg) translateZ(0) scale(1);
   }
 }
 
 .scroll-cue {
   position: absolute;
   left: 50%;
-  bottom: 28px;
+  bottom: 22px;
   transform: translateX(-50%);
   z-index: 3;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  color: #fff;
-  opacity: 0.9;
-  transition: opacity 0.5s ease;
+  gap: 3px;
   pointer-events: none;
 }
 
-.scroll-cue-hidden {
-  opacity: 0;
+.scroll-cue-arrow {
+  width: 9px;
+  height: 9px;
+  border-right: 1.5px solid var(--magenta);
+  border-bottom: 1.5px solid var(--magenta);
+  opacity: 0.55;
 }
 
-.scroll-cue-icon {
-  width: 14px;
-  height: 14px;
-  border-right: 2px solid #fff;
-  border-bottom: 2px solid #fff;
+.scroll-cue-up {
+  transform: rotate(-135deg);
+  animation: pulse-arrow 2.4s ease-in-out infinite;
+}
+
+.scroll-cue-down {
   transform: rotate(45deg);
-  animation: bounce 1.6s ease-in-out infinite;
+  animation: pulse-arrow 2.4s ease-in-out infinite 0.5s;
 }
 
-.scroll-cue-label {
-  font-size: 11px;
-  font-weight: 300;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-@keyframes bounce {
+@keyframes pulse-arrow {
   0%,
   100% {
-    transform: translateY(0) rotate(45deg);
+    opacity: 0.3;
   }
   50% {
-    transform: translateY(8px) rotate(45deg);
+    opacity: 0.85;
   }
 }
 
@@ -200,6 +198,10 @@
   }
 }
 
+.contact-reveal {
+  color: var(--magenta);
+}
+
 .contact-reveal span {
   display: inline-block;
   max-width: 0;
@@ -230,10 +232,6 @@
 .contact-row span {
   font-size: 14px;
   font-weight: 300;
-}
-
-.contact-row:hover span {
-  text-decoration: underline;
 }
 
 @media (max-width: 700px) {
@@ -295,6 +293,10 @@
   .contact-row {
     color: #ffffff;
     text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
+  }
+
+  .contact-reveal {
+    color: var(--magenta);
   }
 
   .contact-row svg {
