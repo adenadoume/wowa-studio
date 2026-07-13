@@ -1,18 +1,25 @@
 import { useEffect, useRef, useState } from 'react'
+import CylinderFrame from './CylinderFrame'
 import './App.css'
 
 const IMAGES_API_BASE =
   import.meta.env.VITE_IMAGES_API_BASE || 'https://img.wowa.studio'
 
 const ROTATE_MS = 3800
-const MIN_PLACEHOLDER_MS = 900
+const MIN_PLACEHOLDER_MS = ROTATE_MS
 const CHROME_REVEAL_DELAY_MS = 2500
 
 function preload(src) {
   return new Promise((resolve) => {
     const img = new Image()
-    img.onload = () => resolve(src)
-    img.onerror = () => resolve(src)
+    img.onload = () =>
+      resolve({
+        src,
+        naturalW: img.naturalWidth,
+        naturalH: img.naturalHeight,
+        portrait: img.naturalHeight > img.naturalWidth,
+      })
+    img.onerror = () => resolve({ src, naturalW: 0, naturalH: 0, portrait: false })
     img.src = src
   })
 }
@@ -39,16 +46,24 @@ function App() {
         const urls = (data.images || []).map((i) => i.url)
         if (cancelled || urls.length === 0) return
 
-        await preload(urls[0])
-        if (urls[1]) preload(urls[1])
+        const first = await preload(urls[0])
+        const rest = urls.slice(1)
+        if (rest[0]) preload(rest[0])
 
         const elapsed = Date.now() - bootedAt
         const wait = Math.max(0, MIN_PLACEHOLDER_MS - elapsed)
         setTimeout(() => {
           if (cancelled) return
-          setImages(urls)
+          setImages([first, ...rest.map((src) => ({ src, naturalW: 0, naturalH: 0, portrait: false }))])
           setStarted(true)
-          urls.slice(2).forEach(preload)
+          rest.slice(1).forEach(async (src, i) => {
+            const loaded = await preload(src)
+            setImages((current) => {
+              const next = [...current]
+              next[i + 2] = loaded
+              return next
+            })
+          })
         }, wait)
       } catch {
         // network/API hiccup: keep the magenta placeholder rather than a broken layout
@@ -159,17 +174,12 @@ function App() {
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
-        {started && prevIndex !== null && (
-          <img className="frame frame-under" src={images[prevIndex]} alt="" />
+        {started && prevIndex !== null && images[prevIndex] && (
+          <CylinderFrame image={images[prevIndex]} animate={false} className="frame-under" />
         )}
-        {started && (
-          <img key={index} className="frame frame-fade" src={images[index]} alt="" />
+        {started && images[index] && (
+          <CylinderFrame key={index} image={images[index]} animate className="frame-fade" />
         )}
-
-        <div className="scroll-cue">
-          <span className="scroll-cue-arrow scroll-cue-up" />
-          <span className="scroll-cue-arrow scroll-cue-down" />
-        </div>
       </main>
     </div>
   )
