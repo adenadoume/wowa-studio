@@ -1,7 +1,6 @@
-import { Suspense, lazy, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import ImageCarousel from './ImageCarousel'
 import './App.css'
-
-const CylinderStage = lazy(() => import('./CylinderStage'))
 
 const IMAGES_API_BASE =
   import.meta.env.VITE_IMAGES_API_BASE || 'https://img.wowa.studio'
@@ -28,12 +27,9 @@ function preload(src) {
 function App() {
   const [images, setImages] = useState([])
   const [started, setStarted] = useState(false)
-  const [index, setIndex] = useState(0)
-  const [prevIndex, setPrevIndex] = useState(null)
   const [hovered, setHovered] = useState(false)
   const [chromeHidden, setChromeHidden] = useState(false)
 
-  const timeoutRef = useRef(null)
   const chromeRevealTimeoutRef = useRef(null)
 
   useEffect(() => {
@@ -76,28 +72,6 @@ function App() {
       cancelled = true
     }
   }, [])
-
-  useEffect(() => {
-    if (!started || images.length < 2) return
-    let cancelled = false
-
-    function scheduleNext() {
-      timeoutRef.current = setTimeout(() => {
-        if (cancelled) return
-        setIndex((current) => {
-          setPrevIndex(current)
-          return (current + 1) % images.length
-        })
-        scheduleNext()
-      }, ROTATE_MS)
-    }
-
-    scheduleNext()
-    return () => {
-      cancelled = true
-      clearTimeout(timeoutRef.current)
-    }
-  }, [started, images.length])
 
   useEffect(() => {
     function hideChrome() {
@@ -175,15 +149,7 @@ function App() {
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
-        {started && images[index] && (
-          <Suspense fallback={null}>
-            <CylinderStage
-              current={images[index]}
-              prev={prevIndex !== null ? images[prevIndex] : null}
-              onPrevDone={() => setPrevIndex(null)}
-            />
-          </Suspense>
-        )}
+        {started && images.length > 0 && <ImageCarousel images={images} rotateMs={ROTATE_MS} />}
       </main>
     </div>
   )
