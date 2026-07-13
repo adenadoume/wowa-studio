@@ -126,35 +126,32 @@
 
 .contact {
   display: flex;
-  align-items: center;
-  gap: 16px;
+  flex-direction: column;
+  gap: 10px;
 }
 
-.icon-link {
-  color: var(--magenta);
+.contact-row {
   display: flex;
-  opacity: 0.92;
-  transition: opacity 0.3s ease;
-}
-
-.icon-link:hover {
-  opacity: 1;
-}
-
-.icon-link svg {
-  width: 22px;
-  height: 22px;
-  display: block;
-}
-
-.email-link {
-  font-size: 14px;
-  font-weight: 300;
+  align-items: center;
+  gap: 10px;
   color: var(--ink);
   text-decoration: none;
 }
 
-.email-link:hover {
+.contact-row svg {
+  width: 18px;
+  height: 18px;
+  display: block;
+  flex-shrink: 0;
+  color: var(--magenta);
+}
+
+.contact-row span {
+  font-size: 14px;
+  font-weight: 300;
+}
+
+.contact-row:hover span {
   text-decoration: underline;
 }
 
@@ -181,6 +178,6 @@
 
   .contact {
     order: 2;
-    justify-content: center;
+    align-items: center;
   }
 }
