@@ -126,8 +126,8 @@
 
 .contact {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  align-items: center;
+  gap: 18px;
 }
 
 .contact-row {
@@ -139,11 +139,16 @@
 }
 
 .contact-row svg {
-  width: 18px;
-  height: 18px;
+  width: 28px;
+  height: 28px;
   display: block;
   flex-shrink: 0;
   color: var(--magenta);
+  transition: transform 0.25s ease;
+}
+
+.contact-row:hover svg {
+  transform: scale(1.2);
 }
 
 .contact-row span {

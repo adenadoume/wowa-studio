@@ -1,6 +1,8 @@
 function corsHeaders(origin, allowedOrigins) {
   const isAllowed =
-    allowedOrigins.includes(origin) || /^https?:\/\/localhost(:\d+)?$/.test(origin);
+    allowedOrigins.includes(origin) ||
+    /^https?:\/\/localhost(:\d+)?$/.test(origin) ||
+    /^https:\/\/([a-z0-9-]+\.)?wowa-studio\.pages\.dev$/.test(origin);
   return {
     "Access-Control-Allow-Origin": isAllowed ? origin : allowedOrigins[0],
     "Access-Control-Allow-Methods": "GET, OPTIONS",

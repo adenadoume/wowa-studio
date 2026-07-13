@@ -109,7 +109,7 @@ function App() {
 
         <footer className="contact">
           <a
-            className="contact-row"
+            className="contact-row contact-icon-only"
             href="https://www.instagram.com/wowa_studio/"
             target="_blank"
             rel="noopener noreferrer"
@@ -120,15 +120,13 @@ function App() {
               <circle cx="12" cy="12" r="4.5" stroke="currentColor" strokeWidth="2" />
               <circle cx="17.5" cy="6.5" r="1.2" fill="currentColor" />
             </svg>
-            <span>@wowa_studio</span>
           </a>
 
-          <a className="contact-row" href="mailto:christovasilis@gmail.com" aria-label="Email">
+          <a className="contact-row contact-icon-only" href="mailto:christovasilis@gmail.com" aria-label="Email: christovasilis@gmail.com">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <rect x="2.5" y="4.5" width="19" height="15" rx="2.5" stroke="currentColor" strokeWidth="2" />
               <path d="M3.5 6L12 13L20.5 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <span>christovasilis@gmail.com</span>
           </a>
 
           <a className="contact-row" href="tel:+306974929253" aria-label="Phone">
