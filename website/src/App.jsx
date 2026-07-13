@@ -139,6 +139,9 @@ function App() {
         className={`stage${hovered ? ' stage-color' : ''}`}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
+        onTouchStart={() => setHovered(true)}
+        onTouchEnd={() => setHovered(false)}
+        onTouchCancel={() => setHovered(false)}
       >
         <ImageCarousel images={images} rotateMs={ROTATE_MS} />
       </main>

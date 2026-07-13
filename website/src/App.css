@@ -62,7 +62,7 @@
   flex: 1;
   overflow: hidden;
   border-radius: 2px;
-  background: var(--magenta);
+  background: #ffffff;
   opacity: 0;
   transform: scale(0.97);
   animation: stage-in 800ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
