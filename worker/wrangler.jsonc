@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wowa-images-api",
+  "main": "src/index.js",
+  "compatibility_date": "2026-07-01",
+  "r2_buckets": [
+    { "binding": "IMAGES_BUCKET", "bucket_name": "wowa-studio-images" }
+  ],
+  "routes": [
+    { "pattern": "img.wowa.studio", "custom_domain": true }
+  ],
+  "workers_dev": true,
+  "vars": {
+    "ALLOWED_ORIGINS": "https://wowa.studio,http://localhost:5173"
+  },
+  "observability": {
+    "enabled": true
+  }
+}

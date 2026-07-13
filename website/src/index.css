@@ -1,0 +1,29 @@
+:root {
+  --magenta: #fd3db6;
+  --ink: #1a1a1a;
+  color-scheme: light;
+  font-family: 'Poppins', system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: #ffffff;
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+
+a {
+  color: inherit;
+}

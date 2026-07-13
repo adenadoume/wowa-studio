@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.wrangler/
+*.log
+.DS_Store
+r2-upload/
+website/.env.local
+WOWA_Site.jpg

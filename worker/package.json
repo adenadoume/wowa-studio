@@ -1,0 +1,15 @@
+{
+  "name": "wowa-images-api",
+  "version": "1.0.0",
+  "description": "R2-backed image list API + image server for wowa.studio",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "license": "UNLICENSED",
+  "type": "module",
+  "devDependencies": {
+    "wrangler": "^4.110.0"
+  }
+}
