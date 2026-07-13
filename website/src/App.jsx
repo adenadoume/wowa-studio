@@ -6,7 +6,6 @@ const IMAGES_API_BASE =
   import.meta.env.VITE_IMAGES_API_BASE || 'https://img.wowa.studio'
 
 const ROTATE_MS = 3800
-const MIN_PLACEHOLDER_MS = ROTATE_MS
 const CHROME_REVEAL_DELAY_MS = 2500
 
 function preload(src) {
@@ -26,7 +25,6 @@ function preload(src) {
 
 function App() {
   const [images, setImages] = useState([])
-  const [started, setStarted] = useState(false)
   const [hovered, setHovered] = useState(false)
   const [chromeHidden, setChromeHidden] = useState(false)
 
@@ -36,7 +34,6 @@ function App() {
     let cancelled = false
 
     async function load() {
-      const bootedAt = Date.now()
       try {
         const res = await fetch(`${IMAGES_API_BASE}/api/images`)
         const data = await res.json()
@@ -45,25 +42,19 @@ function App() {
 
         const first = await preload(urls[0])
         const rest = urls.slice(1)
-        if (rest[0]) preload(rest[0])
+        if (cancelled) return
 
-        const elapsed = Date.now() - bootedAt
-        const wait = Math.max(0, MIN_PLACEHOLDER_MS - elapsed)
-        setTimeout(() => {
-          if (cancelled) return
-          setImages([first, ...rest.map((src) => ({ src, naturalW: 0, naturalH: 0, portrait: false }))])
-          setStarted(true)
-          rest.slice(1).forEach(async (src, i) => {
-            const loaded = await preload(src)
-            setImages((current) => {
-              const next = [...current]
-              next[i + 2] = loaded
-              return next
-            })
+        setImages([first, ...rest.map((src) => ({ src, naturalW: 0, naturalH: 0, portrait: false }))])
+        rest.forEach(async (src, i) => {
+          const loaded = await preload(src)
+          setImages((current) => {
+            const next = [...current]
+            next[i + 1] = loaded
+            return next
           })
-        }, wait)
+        })
       } catch {
-        // network/API hiccup: keep the magenta placeholder rather than a broken layout
+        // network/API hiccup: carousel just keeps showing its magenta slide
       }
     }
 
@@ -149,7 +140,7 @@ function App() {
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
-        {started && images.length > 0 && <ImageCarousel images={images} rotateMs={ROTATE_MS} />}
+        <ImageCarousel images={images} rotateMs={ROTATE_MS} />
       </main>
     </div>
   )

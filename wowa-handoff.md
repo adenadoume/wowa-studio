@@ -134,8 +134,15 @@ Lazy-loaded via `React.lazy`/`Suspense` since Three.js adds ~950KB (~262KB gzip)
 ### Verification approach this session
 Confirmed several times that the sandboxed browser here has **zero outbound network access** (even `fetch('https://example.com')` fails from within Playwright's headless Chromium, while `curl` from Bash works fine — different network paths). All visual verification of live-API behavior therefore goes through Playwright with `page.route()` mocking the `/api/images` and `/img/*` endpoints locally (using downsized copies of the real source photos), then reading back screenshots. Server-side truth (API responses, CORS headers, deployed bundle contents, DNS records) is checked directly via `curl`/Cloudflare API instead.
 
+### The WebGL cylinder didn't survive contact with a real browser
+The Three.js cylinder above tested clean in this session's Playwright checks (once the three real bugs were fixed) — but the user reported **no effect at all** in their actual browser on the live site. Root cause not diagnosed (ran out of remaining troubleshooting budget for a custom solution). Given this was the *fourth* rejected/broken hand-rolled transition in one session (rotateX flip → rotateY swing → CSS slice-barrel-roll → WebGL cylinder), stopped building custom ones and switched to **Swiper.js** (`swiper` npm package) instead — a mature, widely-deployed library rather than more from-scratch code.
+
+`website/src/ImageCarousel.jsx` wraps `<Swiper>` with `direction="vertical"` + `effect="cube"` + `Autoplay` — each image rotates away like a face of a drum while the next scrolls up from below, which is exactly the "scrolling up and getting lost in a cylinder" look the user described, and matches Swiper's well-tested vertical cube demo. Deleted `CylinderStage.jsx` and all the custom `index`/`prevIndex` rotation-scheduling state in `App.jsx` (~40 lines) — Swiper's `autoplay` now owns transition timing entirely, `App.jsx` just hands it the preloaded image list. Also dropped `three` + `@react-three/fiber` (bundle: ~1.1MB → ~280KB total). Verified via the same Playwright-mocked-API approach as before; renders correctly, no console errors, hover-to-color still works (CSS filter on `.frame`, unaffected by the swap).
+
+**Not yet confirmed working in the user's actual browser** — verify this one before doing anything else next session, given the WebGL version's silent failure.
+
 ### Current live state
-- **https://wowa.studio** — live, real domain, current deploy.
+- **https://wowa.studio** — live, real domain, current deploy (Swiper vertical-cube carousel).
 - **https://wowa-studio.pages.dev** — same deploy, alias.
-- Images served from `https://wowa-images-api.agop-website.workers.dev` (the `img.wowa.studio` custom domain is provisioned but not resolving — see above).
+- Images served from `https://wowa-images-api.agop-website.workers.dev` (the `img.wowa.studio` custom domain is provisioned but not resolving — see above, still unsolved).
 - Repo: `github.com/adenadoume/wowa-studio`, `main` branch, up to date with everything in this session.
