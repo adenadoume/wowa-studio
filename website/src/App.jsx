@@ -8,6 +8,15 @@ const IMAGES_API_BASE =
 const ROTATE_MS = 3800
 const CHROME_REVEAL_DELAY_MS = 2500
 
+function shuffle(arr) {
+  const next = [...arr]
+  for (let i = next.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[next[i], next[j]] = [next[j], next[i]]
+  }
+  return next
+}
+
 function preload(src) {
   return new Promise((resolve) => {
     const img = new Image()
@@ -37,7 +46,7 @@ function App() {
       try {
         const res = await fetch(`${IMAGES_API_BASE}/api/images`)
         const data = await res.json()
-        const urls = (data.images || []).map((i) => i.url)
+        const urls = shuffle((data.images || []).map((i) => i.url))
         if (cancelled || urls.length === 0) return
 
         const first = await preload(urls[0])

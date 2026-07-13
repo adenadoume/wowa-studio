@@ -106,10 +106,6 @@
   transition: filter 0.6s ease;
 }
 
-.frame-portrait {
-  object-fit: contain;
-}
-
 .stage-color .frame {
   filter: grayscale(0);
 }

@@ -23,11 +23,7 @@ export default function ImageCarousel({ images, rotateMs }) {
       </SwiperSlide>
       {images.map((image) => (
         <SwiperSlide key={image.src} className="carousel-slide">
-          <img
-            className={`frame${image.portrait ? ' frame-portrait' : ''}`}
-            src={image.src}
-            alt=""
-          />
+          <img className="frame" src={image.src} alt="" />
         </SwiperSlide>
       ))}
     </Swiper>
