@@ -86,8 +86,56 @@ User approved: GitHub repo `https://github.com/adenadoume/wowa-studio`, `wowa.st
 - Once `img.wowa.studio` resolves, switch `website/.env`'s `VITE_IMAGES_API_BASE` from the `workers.dev` fallback to `https://img.wowa.studio`, rebuild, redeploy Pages.
 
 ### Still open / next session
-- [ ] DNS write blocker above — waiting on user action (dashboard click or API token)
-- [ ] Once `wowa.studio` domain resolves on Pages, confirm site loads at the real domain (currently only live at `wowa-studio.pages.dev`)
-- [ ] Once `img.wowa.studio` resolves, switch the front-end off the `workers.dev` fallback URL
-- [ ] Cloudflare Pages Git integration (auto-deploy on push) not wired up — currently deploys are manual (`wrangler pages deploy`) even though the repo is now on GitHub. Dashboard-only OAuth step, same as the domain issue.
-- [ ] User has not yet given feedback on the live draft (https://wowa-studio.pages.dev) beyond the layout/contact fixes already applied in this session
+- [ ] Cloudflare Pages Git integration (auto-deploy on push) not wired up — currently deploys are manual (`wrangler pages deploy`) even though the repo is now on GitHub. Dashboard-only OAuth step.
+- [ ] `img.wowa.studio` still doesn't resolve — see below, needs real investigation next session.
+
+---
+
+## 2026-07-13 — Session 1 (continued)
+
+### DNS: fixed
+User's first pasted API token (`cfat_...`) never validated against Cloudflare's own `/user/tokens/verify` endpoint — genuinely invalid, not a scope issue (confirmed by retrying it twice, same "Invalid API Token" both times, likely copied before hitting the final "Create Token" confirmation screen). A second token (`cfut_...`, valid) let us:
+- Read the zone's DNS records directly — the apex `wowa.studio` **A record → 128.140.2.167 seen earlier was stale local/resolver cache, not a real Cloudflare zone record.** The zone had no apex A/CNAME at all (only MX/TXT/NS for email — Namecheap-style email forwarding via `eforward*.registrar-servers.com`, untouched). So attaching the site was a clean add, not a replace.
+- Created `CNAME wowa.studio → wowa-studio.pages.dev` (proxied) directly via the Cloudflare API. **`wowa.studio` is now live** and serving the current deploy (verified via curl + confirmed by user).
+- `img.wowa.studio`'s `AAAA → 100::` (proxied) record already existed — Cloudflare's standard (if unusual-looking) mechanism for Workers Custom Domains — and the Worker API reports it `enabled: true` with a cert issued. **It still does not resolve**, from this sandbox *or* from the user's own browser (user confirmed: "wowa.studio no images just the magenta placeholder"). Root cause not yet found — worth a fresh investigation next session (candidates: something about the zone's proxy status for that specific record, an edge propagation issue, or a Cloudflare-side quirk with AAAA-only Workers Custom Domains). **Front-end currently points at the `workers.dev` URL as a working fallback** (`website/.env`) — swap back to `https://img.wowa.studio` once this is solved.
+
+### Contact icons — several rounds of polish
+- Made vertical (was horizontal), Instagram/email icon-only (no label), phone icon-only by default but reveals its number on hover (`max-width` transition on the text), enlarged from 18px → 28px with a hover-scale.
+- Real Instagram link (`https://www.instagram.com/wowa_studio/`, was `#` placeholder) and a real phone number (`+30 697 492 9253`, taken from the user's own `WOWA Site.jpg` mockup text).
+- Phone: removed the hover-underline, set text color to magenta (was near-black) per explicit request.
+
+### Layout bug found and fixed: full-bleed vs. the mockup
+First pass had the stage spanning edge-to-edge and magenta filling the whole page background — a miss against the mockup, not a deliberate call. Mockup actually shows: white page, ~30% sidebar (logo top, contact bottom, lots of negative space) with the magenta stage shifted right and inset asymmetrically (bigger gap on the left than the right). Rebuilt as a two-column flex layout matching that; mobile still stacks via `display:contents` + `order` on the sidebar's children.
+
+### Mobile: full-bleed + auto-hiding chrome
+Per user request: mobile gets a full-bleed image (no padding/border-radius) with the logo and contact bar floating as an overlay that **hides on scroll and reappears on tap or after ~2.5s idle**. Explicitly skipped a hamburger menu — there's nothing to navigate to on a single-page site, so it'd be pure overhead. Iterated twice more per feedback: removed the drop-shadow/text-shadow (user called it "grey shadows", didn't like it), shrunk icons in portrait specifically (20px vs 28px desktop), and extended the same treatment to **landscape** phones via `(max-height: 500px) and (orientation: landscape)` in addition to the width-based portrait query — landscape phones are often wider than the 700px breakpoint and were falling back to the desktop two-column layout, which is wrong for a phone.
+
+### Image orientation / sizing (portrait vs. landscape sources)
+User flagged that source photos have mixed orientation/aspect ratio and asked whether that's fixable in code or needs consistent images from the architect. Answer given: `object-fit:cover` already centers by default, but a portrait shot cropped hard into a wide landscape stage will still lose a lot of the photo — **consistent aspect ratio from the source is the real fix**, but added a code-side mitigation too: images are now checked for orientation at preload time (`naturalWidth`/`naturalHeight`), and portrait ones letterbox (contain-fit + magenta bars) instead of being cropped like landscape ones (cover-fit). Hit a real bug doing this: the magenta letterbox came out **grey**, because `filter:grayscale()` was applied to the same element that carried the magenta `background-color`, desaturating it. Fixed by moving the background onto an unfiltered wrapper.
+
+### The image-transition effect: three iterations, now WebGL
+This was the highest-friction part of the session — three built-and-rejected attempts before landing on the right one:
+1. **rotateX card-flip** (first pass) — user: "don't like 3D card flip."
+2. **rotateY horizontal swing** — user: "still wrong... not standard ones please."
+3. **CSS multi-slice barrel-roll** (14 horizontal bands, GSAP-staggered rotateX+depth per band, sharing one continuous background canvas computed in real pixels from natural image size) — a legitimate technique (seen on real award-winning sites) for faking curvature on a flat plane. Had a real sign-error bug (background-position math negated `offsetY` twice, leaving a permanent gap at the top of every image) — found and fixed. User still rejected the *result*: "effect unacceptable."
+
+At that point, rather than guess a fourth time, asked the user to choose between four concrete options (true WebGL cylinder / refined CSS slices / vertical conveyor / SVG displacement) with an `AskUserQuestion`. **User picked the true WebGL cylinder.**
+
+**Built with `@react-three/fiber` + `three` + `gsap`** (`website/src/CylinderStage.jsx`, replacing the old `CylinderFrame.jsx`, which is deleted): each image is mapped onto an actual curved arc-segment of a vertical-axis `CylinderGeometry` (cover-fit UV computed in real pixels from natural image size, same math family as the CSS version). Transitions swing the outgoing arc away and the incoming arc into place by tweening `rotation.y` with GSAP — genuine 3D curvature during the transition (confirmed visually: real perspective foreshortening on mid-roll screenshots), not an illusion. Idle/resting frame uses an **orthographic** camera so there's zero perspective skew when not transitioning — matches the site's flat, precise aesthetic.
+
+Lazy-loaded via `React.lazy`/`Suspense` since Three.js adds ~950KB (~262KB gzip) — the main bundle is back down to ~196KB and the heavy chunk streams in during the magenta placeholder wait rather than blocking first paint.
+
+**Three real bugs found and fixed while building this** (each confirmed via direct debugging, not guessed):
+- Cross-origin WebGL texture reads need `TextureLoader.setCrossOrigin('anonymous')` explicitly — without it, textures silently fail (no error thrown; browsers require CORS opt-in to read pixel data into a texture, unlike a plain `<img>` which displays cross-origin images fine without it). Site images come from a different subdomain (`workers.dev`/`img.wowa.studio`) than the page, so this is a real production concern, not just a test artifact.
+- The orthographic camera's frustum wasn't being auto-sized by `@react-three/fiber` — passing a custom `camera` prop to `<Canvas>` seems to opt out of its automatic viewport-based sizing, leaving `left/right/top/bottom` at the `OrthographicCamera` constructor defaults (±1) so nothing was ever in frame. Now set explicitly from canvas pixel size every time it changes.
+- Camera was fixed at `z=800`, which was *closer to the origin than the mesh itself* (mesh sits at `z≈radius`, computed from stage width — often >1300px) — camera was effectively behind the geometry. Distance is now derived from the computed radius (`radius + 600`) so it always clears the mesh regardless of stage size.
+- Diagnosed by: confirming a static `rotation.y=0` mesh rendered perfectly (isolating the bug to the animation/camera path, not texture/material), then adding real console instrumentation (`JSON.stringify`'d bounding-box/camera-frustum dumps) rather than continuing to guess — the actual fix followed directly from that data.
+
+### Verification approach this session
+Confirmed several times that the sandboxed browser here has **zero outbound network access** (even `fetch('https://example.com')` fails from within Playwright's headless Chromium, while `curl` from Bash works fine — different network paths). All visual verification of live-API behavior therefore goes through Playwright with `page.route()` mocking the `/api/images` and `/img/*` endpoints locally (using downsized copies of the real source photos), then reading back screenshots. Server-side truth (API responses, CORS headers, deployed bundle contents, DNS records) is checked directly via `curl`/Cloudflare API instead.
+
+### Current live state
+- **https://wowa.studio** — live, real domain, current deploy.
+- **https://wowa-studio.pages.dev** — same deploy, alias.
+- Images served from `https://wowa-images-api.agop-website.workers.dev` (the `img.wowa.studio` custom domain is provisioned but not resolving — see above).
+- Repo: `github.com/adenadoume/wowa-studio`, `main` branch, up to date with everything in this session.
