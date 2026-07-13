@@ -54,4 +54,40 @@ Living log for this project. Every session appends: what the user asked, what wa
 Is `wowa.studio`'s DNS already managed in this Cloudflare account? If yes I can attach the custom domain (both for Pages and for the image API) as part of today's pass; if not, I'll ship the MVP on the default `*.pages.dev` / `*.workers.dev` URLs and you can point the domain over whenever it's ready.
 
 ### Executed this session
-- Nothing built yet — plan only, awaiting user approval.
+
+User approved: GitHub repo `https://github.com/adenadoume/wowa-studio`, `wowa.studio` DNS confirmed already on this Cloudflare account, React/Vite confirmed.
+
+**R2 + Worker**
+- Compressed all 20 `WOWA_FrontpageIMG*.jpg` with `sips` (cap 2400px wide, JPEG q78): ~45MB → ~12MB total, staged in `r2-upload/` (gitignored, not committed — regenerable from the originals).
+- Created R2 bucket `wowa-studio-images`, uploaded all 20 optimized images.
+- Built `worker/` (Cloudflare Worker, `wowa-images-api`): `GET /api/images` lists the R2 bucket live and returns JSON `{key,url}[]`; `GET /img/:key` streams bytes from R2 with long-cache headers. CORS allows `https://wowa.studio` + any `localhost:*` (for dev).
+- Deployed the Worker. It's reachable today at **`https://wowa-images-api.agop-website.workers.dev`** (verified working via curl).
+- Attempted to attach custom domain `img.wowa.studio` to the Worker (`routes: [{pattern: "img.wowa.studio", custom_domain: true}]` in `worker/wrangler.jsonc`) — Cloudflare registered it (`enabled: true`, cert issued) but the DNS record itself never got created, so it doesn't resolve yet. Root cause below.
+
+**Front-end**
+- Scaffolded Vite + React in `website/`, added `@fontsource/poppins` (self-hosted, weights 300/400/700 — no external Google Fonts request at runtime).
+- Built the rotating gallery: fetches `/api/images` on load, preloads the first 2 images, shows the magenta placeholder for a minimum ~900ms, then crossfades through the list (~3.8s/image normally, ~0.9s/image for ~1.4s after each scroll tick — decays back automatically, no separate "reset" logic needed).
+- Grayscale by default (`filter: grayscale(1)`), full color on hover over the stage, both via CSS transition.
+- Bouncing "scroll" cue bottom-center of the stage, fades out after the first scroll/touch event.
+- **Layout correction**: first pass was full-bleed (stage spanning the whole width, magenta filling the whole page background) — this was a miss, not a deliberate call. User caught it against the mockup. Rebuilt as the mockup actually shows: white page background, two-column layout (~30% sidebar with logo top / contact bottom, generous white gap, then the magenta stage shifted right and flush-ish to the right edge). Mobile still stacks (logo → stage → contact) via `display: contents` + flex `order` on the sidebar's children.
+- Font: confirmed **Poppins** over Arial — the logo's lowercase "a" is single-story (bowl + stem, no top hook), which is the geometric-sans signature (Poppins/Futura/Century Gothic), not Arial's double-story "a".
+- Contact footer, per user's follow-up: three icon+text rows — Instagram (real link `https://www.instagram.com/wowa_studio/`, was a `#` placeholder), email (`christovasilis@gmail.com`), phone (`+30 697 492 9253`, taken from the original `WOWA Site.jpg` mockup text since it's the user's own design file). Instagram PNG asset (`Instagram 255,51,204.png`) turned out to be magenta-on-transparent — invisible against the page background at every layout iteration — replaced with inline SVG icons colored `var(--magenta)` throughout.
+- Verified visually via Playwright + mocked `/api/images` responses (screenshotted boot/rotation/hover/mobile states) since the sandboxed browser here has no outbound network access — confirmed rotation, crossfade, grayscale↔color, and layout all render correctly before shipping. Confirmed via curl separately that the real Worker API is live and CORS-correct.
+
+**Deploy**
+- Cloudflare Pages project `wowa-studio` created, deployed via `wrangler pages deploy` (direct upload, not Git-triggered). Live at **`https://wowa-studio.pages.dev`**.
+- Initialized a **dedicated git repo** at `/Users/nucintosh/PYTHON/wowa.studio` (was previously only inside the home-level mega-repo). Pushed to `git@github.com:adenadoume/wowa-studio.git` main branch, two commits so far (initial MVP, then the layout/contact fixes).
+- `.gitignore`: excludes `node_modules/`, `dist/`, `.wrangler/`, `r2-upload/` (optimized images — already in R2, regenerable). The 20 original full-res `WOWA_FrontpageIMG*.jpg` + mockup JPGs/PNGs **are** committed (source-of-truth design assets, ~45MB total, acceptable repo size). `website/.env` (holds `VITE_IMAGES_API_BASE`, a public non-secret URL) is committed too, since deploys are local/manual right now rather than Pages-Git-triggered.
+
+**Blocked: both custom domains need a DNS write**
+- Attempted `wowa.studio` → Pages project via the Cloudflare API directly (`POST .../pages/projects/wowa-studio/domains`) — accepted but stuck at `status: initializing`, `"CNAME record not set"`.
+- Root cause (same for both `wowa.studio` and `img.wowa.studio`): the OAuth token `wrangler login` produced has `pages:write` and `workers_routes:write` but **no DNS-record-write scope**, so Cloudflare can register the custom domain/route but can't auto-create the underlying DNS record. `wowa.studio`'s apex currently has a pre-existing `A` record → `128.140.2.167` (something else already live there — did not touch it, not knowing if it's still needed).
+- **Fix options given to user**: (a) easiest — just open the Cloudflare dashboard once and click through (Workers & Pages → `wowa-studio` project → Custom domains → activate `wowa.studio`; and Workers & Pages → `wowa-images-api` → Triggers → Custom Domains → activate `img.wowa.studio`) — the dashboard session has full permissions so it self-heals; (b) or give Claude a scoped API token (Cloudflare dashboard → My Profile → API Tokens → Create Token → "Edit zone DNS" template → scope to zone `wowa.studio` only) so it can fix the DNS records directly via API.
+- Once `img.wowa.studio` resolves, switch `website/.env`'s `VITE_IMAGES_API_BASE` from the `workers.dev` fallback to `https://img.wowa.studio`, rebuild, redeploy Pages.
+
+### Still open / next session
+- [ ] DNS write blocker above — waiting on user action (dashboard click or API token)
+- [ ] Once `wowa.studio` domain resolves on Pages, confirm site loads at the real domain (currently only live at `wowa-studio.pages.dev`)
+- [ ] Once `img.wowa.studio` resolves, switch the front-end off the `workers.dev` fallback URL
+- [ ] Cloudflare Pages Git integration (auto-deploy on push) not wired up — currently deploys are manual (`wrangler pages deploy`) even though the repo is now on GitHub. Dashboard-only OAuth step, same as the domain issue.
+- [ ] User has not yet given feedback on the live draft (https://wowa-studio.pages.dev) beyond the layout/contact fixes already applied in this session
