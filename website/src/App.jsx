@@ -6,7 +6,7 @@ const IMAGES_API_BASE =
   import.meta.env.VITE_IMAGES_API_BASE || 'https://img.wowa.studio'
 
 const ROTATE_MS = 3800
-const CHROME_REVEAL_DELAY_MS = 2500
+const CHROME_VISIBLE_MS = 2200
 
 function shuffle(arr) {
   const next = [...arr]
@@ -29,7 +29,7 @@ function preload(src) {
 function App() {
   const [images, setImages] = useState([])
   const [hovered, setHovered] = useState(false)
-  const [chromeHidden, setChromeHidden] = useState(false)
+  const [chromeHidden, setChromeHidden] = useState(true)
   const [showMagenta, setShowMagenta] = useState(true)
 
   const chromeRevealTimeoutRef = useRef(null)
@@ -69,24 +69,20 @@ function App() {
   }, [])
 
   useEffect(() => {
-    function hideChrome() {
-      setChromeHidden(true)
-      clearTimeout(chromeRevealTimeoutRef.current)
-      chromeRevealTimeoutRef.current = setTimeout(() => {
-        setChromeHidden(false)
-      }, CHROME_REVEAL_DELAY_MS)
-    }
-    function revealChrome() {
+    function showChromeBriefly() {
       setChromeHidden(false)
       clearTimeout(chromeRevealTimeoutRef.current)
+      chromeRevealTimeoutRef.current = setTimeout(() => {
+        setChromeHidden(true)
+      }, CHROME_VISIBLE_MS)
     }
-    window.addEventListener('wheel', hideChrome, { passive: true })
-    window.addEventListener('touchmove', hideChrome, { passive: true })
-    window.addEventListener('touchstart', revealChrome, { passive: true })
+    window.addEventListener('wheel', showChromeBriefly, { passive: true })
+    window.addEventListener('touchstart', showChromeBriefly, { passive: true })
+    window.addEventListener('touchmove', showChromeBriefly, { passive: true })
     return () => {
-      window.removeEventListener('wheel', hideChrome)
-      window.removeEventListener('touchmove', hideChrome)
-      window.removeEventListener('touchstart', revealChrome)
+      window.removeEventListener('wheel', showChromeBriefly)
+      window.removeEventListener('touchstart', showChromeBriefly)
+      window.removeEventListener('touchmove', showChromeBriefly)
       clearTimeout(chromeRevealTimeoutRef.current)
     }
   }, [])
@@ -94,7 +90,7 @@ function App() {
   return (
     <div className="page">
       <aside className="sidebar">
-        <a href="/" className="logo" aria-label="wowastudio — Home">
+        <a href="/" className={`logo${chromeHidden ? ' chrome-hidden' : ''}`} aria-label="wowastudio — Home">
           <img className="logo-img" src="/wowa-logo.svg" alt="wowastudio" />
         </a>
 
