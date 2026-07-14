@@ -20,14 +20,8 @@ function shuffle(arr) {
 function preload(src) {
   return new Promise((resolve) => {
     const img = new Image()
-    img.onload = () =>
-      resolve({
-        src,
-        naturalW: img.naturalWidth,
-        naturalH: img.naturalHeight,
-        portrait: img.naturalHeight > img.naturalWidth,
-      })
-    img.onerror = () => resolve({ src, naturalW: 0, naturalH: 0, portrait: false })
+    img.onload = () => resolve({ src })
+    img.onerror = () => resolve({ src })
     img.src = src
   })
 }
@@ -54,7 +48,7 @@ function App() {
         const rest = urls.slice(1)
         if (cancelled) return
 
-        setImages([first, ...rest.map((src) => ({ src, naturalW: 0, naturalH: 0, portrait: false }))])
+        setImages([first, ...rest.map((src) => ({ src }))])
         rest.forEach(async (src, i) => {
           const loaded = await preload(src)
           setImages((current) => {
@@ -101,11 +95,7 @@ function App() {
     <div className="page">
       <aside className="sidebar">
         <a href="/" className="logo" aria-label="wowastudio — Home">
-          <span className="logo-inner">
-            <span className="logo-bold">wow</span>
-            <span className="logo-bold logo-accent">a</span>
-            <span className="logo-light">studio</span>
-          </span>
+          <img className="logo-img" src="/wowa-logo.svg" alt="wowastudio" />
         </a>
 
         <footer className={`contact${chromeHidden ? ' chrome-hidden' : ''}`}>
@@ -130,7 +120,7 @@ function App() {
             </svg>
           </a>
 
-          <a className="contact-row contact-reveal" href="tel:+306974929253" aria-label="Phone: +30 697 492 9253">
+          <a className="contact-row contact-phone" href="tel:+306974929253" aria-label="Phone: +30 697 492 9253">
             <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path
                 d="M4.5 3.5H8.5L10.5 8.5L8 10.5C9 13 11 15 13.5 16L15.5 13.5L20.5 15.5V19.5C20.5 20.6 19.6 21.5 18.5 21.5C10.5 21 3.5 14 3 6C3 4.9 3.9 3.5 4.5 3.5Z"

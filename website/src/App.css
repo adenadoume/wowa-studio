@@ -20,14 +20,13 @@
 .logo {
   display: inline-flex;
   text-decoration: none;
-  font-size: 22px;
-  line-height: 1;
-  letter-spacing: -0.02em;
   user-select: none;
 }
 
-.logo-inner {
-  display: inline-flex;
+.logo-img {
+  display: block;
+  height: 26px;
+  width: auto;
   opacity: 0;
   animation: drop-in 700ms cubic-bezier(0.2, 0.8, 0.2, 1) 150ms forwards;
 }
@@ -41,20 +40,6 @@
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-.logo-bold {
-  font-weight: 700;
-  color: var(--ink);
-}
-
-.logo-accent {
-  color: var(--magenta);
-}
-
-.logo-light {
-  font-weight: 300;
-  color: var(--ink);
 }
 
 .stage {
@@ -100,17 +85,13 @@
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center;
   filter: grayscale(1);
   transition: filter 0.6s ease;
 }
 
 .stage-color .frame {
-  filter: grayscale(0);
-}
-
-.stage-color .cylinder-canvas-wrap canvas {
   filter: grayscale(0);
 }
 
@@ -152,21 +133,21 @@
   }
 }
 
-.contact-reveal {
-  color: var(--magenta);
+.contact-phone {
   -webkit-tap-highlight-color: transparent;
   user-select: text;
 }
 
-.contact-reveal span {
+.contact-phone span {
   font-weight: 700;
+  font-size: 12px;
   user-select: text;
   -webkit-user-select: text;
 }
 
 .contact-row svg {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   display: block;
   flex-shrink: 0;
   color: var(--magenta);
@@ -198,8 +179,11 @@
     width: 100%;
     justify-content: center;
     background: #ffffff;
-    padding: 16px 20px;
-    font-size: 19px;
+    padding: 14px 20px;
+  }
+
+  .logo-img {
+    height: 22px;
   }
 
   .stage {
@@ -226,15 +210,11 @@
   .contact-row {
     color: #ffffff;
   }
-
-  .contact-reveal {
-    color: var(--magenta);
-  }
 }
 
 @media (max-width: 700px) {
   .contact-row svg {
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
   }
 }

@@ -1,18 +1,15 @@
 import { Swiper, SwiperSlide } from 'swiper/react'
-import { Autoplay, EffectCube } from 'swiper/modules'
+import { Autoplay } from 'swiper/modules'
 import 'swiper/css'
-import 'swiper/css/effect-cube'
 
 const MAGENTA_SLIDE_MS = 1300
 
 export default function ImageCarousel({ images, rotateMs, showMagenta, onMagentaPassed }) {
   return (
     <Swiper
-      modules={[Autoplay, EffectCube]}
+      modules={[Autoplay]}
       direction="vertical"
-      effect="cube"
-      cubeEffect={{ shadow: false, slideShadows: false }}
-      speed={950}
+      speed={700}
       loop={images.length > 0}
       allowTouchMove={false}
       autoplay={{ delay: rotateMs, disableOnInteraction: false }}
