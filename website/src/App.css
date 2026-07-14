@@ -1,20 +1,26 @@
 .page {
+  position: relative;
   height: 100dvh;
   width: 100vw;
   display: flex;
   flex-direction: row;
-  padding: 40px 88px 40px 56px;
   background: #ffffff;
 }
 
+/* Percentages below are measured directly from the architect's mockup
+   (WOWA Site.jpg, 4000x2250): logo top-left bbox, contact-block bbox,
+   and the magenta rectangle bbox, each as a fraction of the full canvas. */
 .sidebar {
+  position: absolute;
+  left: 0;
+  top: 0;
   width: 30%;
-  min-width: 220px;
-  max-width: 340px;
+  height: 100%;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding-right: 24px;
+  padding: 3.82% 24px 10.93% 3.3%;
 }
 
 .logo {
@@ -43,8 +49,11 @@
 }
 
 .stage {
-  position: relative;
-  flex: 1;
+  position: absolute;
+  left: 29.95%;
+  right: 9%;
+  top: 12.76%;
+  bottom: 5.91%;
   overflow: hidden;
   border-radius: 2px;
   background: #ffffff;
@@ -167,7 +176,6 @@
   .page {
     position: relative;
     flex-direction: column;
-    padding: 0;
   }
 
   .sidebar {
@@ -187,6 +195,7 @@
   }
 
   .stage {
+    position: static;
     order: 1;
     flex: 1;
     border-radius: 0;
