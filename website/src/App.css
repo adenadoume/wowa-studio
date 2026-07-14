@@ -296,6 +296,10 @@
   .contact-phone {
     color: var(--ink);
   }
+
+  .contact-phone span {
+    font-size: 10px;
+  }
 }
 
 @media (max-width: 700px), (orientation: landscape) and (max-height: 500px) {

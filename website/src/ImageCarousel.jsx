@@ -2,8 +2,6 @@ import { Swiper, SwiperSlide } from 'swiper/react'
 import { Autoplay } from 'swiper/modules'
 import 'swiper/css'
 
-const MAGENTA_SLIDE_MS = 1300
-
 export default function ImageCarousel({ images, rotateMs, showMagenta, onMagentaPassed }) {
   return (
     <Swiper
@@ -19,7 +17,7 @@ export default function ImageCarousel({ images, rotateMs, showMagenta, onMagenta
       className="carousel"
     >
       {showMagenta && (
-        <SwiperSlide className="carousel-slide" data-swiper-autoplay={MAGENTA_SLIDE_MS}>
+        <SwiperSlide className="carousel-slide">
           <div className="carousel-magenta" />
         </SwiperSlide>
       )}
